@@ -9,7 +9,9 @@ from src.graph import (
     build_maven_graph,
     build_test_graph,
     load_test_graph,
+    get_load_order
 )
+
 
 
 class GraphTests(unittest.TestCase):
@@ -95,6 +97,31 @@ class GraphTests(unittest.TestCase):
 
         self.assertEqual(len(graph), 2)
         self.assertEqual(get_dependencies.call_count, 2)
+
+        def test_load_order(self):
+            """Проверяет порядок загрузки зависимостей."""
+            graph = {
+                "A": ["B", "C"],
+                "B": ["D"],
+                "C": ["D", "E"],
+                "D": [],
+                "E": ["F"],
+                "F": [],
+            }
+
+            order = get_load_order(graph)
+
+            self.assertLess(order.index("D"), order.index("B"))
+            self.assertLess(order.index("F"), order.index("E"))
+            self.assertLess(order.index("B"), order.index("A"))
+            self.assertLess(order.index("C"), order.index("A"))
+
+        def test_load_order_cycle(self):
+            """Проверяет обнаружение цикла."""
+            graph = {"A": ["B"], "B": ["C"], "C": ["A"]}
+
+            with self.assertRaisesRegex(ValueError, "цикл"):
+                get_load_order(graph)
 
 
 if __name__ == "__main__":

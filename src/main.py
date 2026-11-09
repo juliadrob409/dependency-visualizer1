@@ -3,7 +3,11 @@
 
 import sys
 from src.config import load_config
-from src.graph import build_test_graph, build_maven_graph
+from src.graph import (
+    build_test_graph,
+    build_maven_graph,
+    get_load_order,
+)
 
 
 MIN_ARGUMENT_COUNT = 2
@@ -55,20 +59,39 @@ def print_graph(graph):
 
 def main():
     """Загружает настройки и строит граф зависимостей."""
-    config_path = (
-        sys.argv[1]
-        if len(sys.argv) >= MIN_ARGUMENT_COUNT
-        else "config.xml"
-    )
+    arguments = sys.argv[1:]
+    show_order = "--order" in arguments
+    arguments = [arg for arg in arguments if arg != "--order"]
 
+    if len(arguments) > 1:
+        print("Ошибка: указано слишком много аргументов")
+        return 1
+
+    config_path = arguments[0] if arguments else "config.xml"
     try:
         config = load_config(config_path)
-        print_config(config)
-        graph = get_graph(config)
-        print_graph(graph)
     except ValueError as error:
         print(f"Ошибка: {error}")
         return 1
+
+    print_config(config)
+    try:
+        graph = get_graph(config)
+
+        if show_order:
+            order = get_load_order(graph)
+
+    except ValueError as error:
+        print(f"Ошибка: {error}")
+        return 1
+
+    if show_order:
+        print("\nПорядок загрузки зависимостей:")
+
+        for package in order:
+            print(f"- {package}")
+    else:
+        print_graph(graph)
 
     return 0
 

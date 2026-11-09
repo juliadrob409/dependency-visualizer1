@@ -134,3 +134,40 @@ def build_maven_graph(package, version, repository):
             stack.append((dependency, item["version"]))
 
     return graph
+
+def get_load_order(graph):
+    """Определяет порядок загрузки пакетов."""
+    states = {}
+    order = []
+
+    for start in graph:
+        stack = [(start, False)]
+
+        while stack:
+            package, expanded = stack.pop()
+            state = states.get(package, 0)
+
+            if expanded:
+                states[package] = 2
+                order.append(package)
+                continue
+
+            if state == 2:
+                continue
+
+            if state == 1:
+                raise ValueError("Обнаружен цикл зависимостей")
+
+            states[package] = 1
+            stack.append((package, True))
+
+            for dependency in reversed(graph[package]):
+                dep_state = states.get(dependency, 0)
+
+                if dep_state == 1:
+                    raise ValueError("Обнаружен цикл зависимостей")
+
+                if dep_state == 0:
+                    stack.append((dependency, False))
+
+    return order

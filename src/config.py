@@ -98,7 +98,6 @@ def _validate_repository(repository, test_mode, config_dir):
 def load_config(path="config.xml"):
     """Загружает XML и возвращает проверенные параметры приложения."""
     config_path = Path(path).resolve()
-
     try:
         root = ET.parse(config_path).getroot()
     except FileNotFoundError as error:
