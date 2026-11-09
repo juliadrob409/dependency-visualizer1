@@ -47,15 +47,31 @@ def _read_parameter(root, name):
     return value
 
 
-def _validate_package(package):
-    """Проверяет формат координат Maven groupId:artifactId."""
+def _validate_package(package, test_mode):
+    """Проверяет имя пакета."""
+    if test_mode and is_test_package(package):
+        return
+
     parts = package.split(":")
 
-    if len(parts) != PACKAGE_PART_COUNT:
-        raise ValueError("Имя пакета должно иметь формат groupId:artifactId")
+    if len(parts) != 2 or not all(parts):
+        raise ValueError("Некорректное имя пакета")
 
-    if not all(is_valid_package_part(part) for part in parts):
-        raise ValueError("Некорректное название пакета")
+    allowed = (
+        "abcdefghijklmnopqrstuvwxyz"
+        "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789._-"
+    )
+
+    for part in parts:
+        if not all(char in allowed for char in part):
+            raise ValueError("Некорректное имя Maven-пакета")
+
+
+def is_test_package(package):
+    """Проверяет имя тестового пакета."""
+    return bool(package) and all(
+        "A" <= char <= "Z" for char in package
+    )
 
 
 def _validate_repository(repository, test_mode, config_dir):
@@ -101,7 +117,6 @@ def load_config(path="config.xml"):
     if mode_value not in VALID_MODES:
         raise ValueError("test_mode должен быть true или false")
 
-    _validate_package(package)
 
     if not is_valid_version(version):
         raise ValueError("Некорректная версия пакета")
@@ -112,6 +127,7 @@ def load_config(path="config.xml"):
         test_mode,
         config_path.parent,
     )
+    _validate_package(package, test_mode)
 
     return {
         "package": package,
