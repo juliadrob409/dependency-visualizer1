@@ -2,7 +2,7 @@
 
 from urllib.error import HTTPError, URLError
 from urllib.request import urlopen
-import xml.etree.ElementTree as ET
+import xml.etree.ElementTree as element_tree
 
 
 TIMEOUT = 10
@@ -96,8 +96,8 @@ def _parse_dependency(element, properties):
 def parse_pom(content):
     """Извлекает прямые зависимости из POM-файла."""
     try:
-        root = ET.fromstring(content)
-    except ET.ParseError as error:
+        root = element_tree.fromstring(content)
+    except element_tree.ParseError as error:
         raise ValueError(
             "Некорректный формат POM-файла"
         ) from error

@@ -1,13 +1,13 @@
 
 """Загрузка и проверка конфигурации приложения."""
 
-import xml.etree.ElementTree as ET
+import xml.etree.ElementTree as element_tree
 from pathlib import Path
 from urllib.parse import urlparse
 
-
 PACKAGE_PART_COUNT = 2
 VALID_MODES = {"true", "false"}
+
 
 
 def is_valid_package_part(value):
@@ -54,7 +54,7 @@ def _validate_package(package, test_mode):
 
     parts = package.split(":")
 
-    if len(parts) != 2 or not all(parts):
+    if len(parts) != PACKAGE_PART_COUNT or not all(parts):
         raise ValueError("Некорректное имя пакета")
 
     allowed = (
@@ -99,10 +99,10 @@ def load_config(path="config.xml"):
     """Загружает XML и возвращает проверенные параметры приложения."""
     config_path = Path(path).resolve()
     try:
-        root = ET.parse(config_path).getroot()
+        root = element_tree.parse(config_path).getroot()
     except FileNotFoundError as error:
         raise ValueError("Файл конфигурации не найден") from error
-    except ET.ParseError as error:
+    except element_tree.ParseError as error:
         raise ValueError("Ошибка формата XML") from error
 
     if root.tag != "configuration":

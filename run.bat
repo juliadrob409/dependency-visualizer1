@@ -1,3 +1,3 @@
 @echo off
-python -m src.main %*
+python -m src.main --order
 pause

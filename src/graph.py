@@ -1,7 +1,9 @@
 """Построение графа зависимостей."""
 
 from src.dependencies import get_direct_dependencies
-
+UNVISITED = 0
+VISITING = 1
+VISITED = 2
 
 def is_valid_name(name):
     """Проверяет имя тестового пакета."""
@@ -145,29 +147,29 @@ def get_load_order(graph):
 
         while stack:
             package, expanded = stack.pop()
-            state = states.get(package, 0)
+            state = states.get(package, UNVISITED)
 
             if expanded:
-                states[package] = 2
+                states[package] = VISITED
                 order.append(package)
                 continue
 
-            if state == 2:
+            if state == VISITED:
                 continue
 
-            if state == 1:
+            if state == VISITING:
                 raise ValueError("Обнаружен цикл зависимостей")
 
-            states[package] = 1
+            states[package] = VISITING
             stack.append((package, True))
 
             for dependency in reversed(graph[package]):
-                dep_state = states.get(dependency, 0)
+                dep_state = states.get(dependency, UNVISITED)
 
-                if dep_state == 1:
+                if dep_state == VISITING:
                     raise ValueError("Обнаружен цикл зависимостей")
 
-                if dep_state == 0:
+                if dep_state == UNVISITED:
                     stack.append((dependency, False))
 
     return order
